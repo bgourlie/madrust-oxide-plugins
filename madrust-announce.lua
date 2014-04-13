@@ -6,7 +6,7 @@ PLUGIN.Author = "W. Brian Gourlie"
 function PLUGIN:Init()
   self.Announcement = {}
   print("init madrust-announce")	
-  self:AddChatCommand( "announce", self.cmdAnnounce )
+  self:AddChatCommand( "announce", self.CmdAnnounce )
 
   print("requesting data from subreddit")
 
@@ -36,6 +36,6 @@ function PLUGIN:OnUserConnect( netuser )
   rust.SendChatToUser( netuser, "[ANNOUNCE]", "Brian is the bomb.com" )
 end
 
-function PLUGIN:cmdAnnounce( netuser, cmd, args )
+function PLUGIN:CmdAnnounce( netuser, cmd, args )
   rust.BroadcastChat( "[ANNOUNCE]", self.Announcement.title )
 end
