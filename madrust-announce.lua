@@ -31,9 +31,9 @@ function PLUGIN:Init()
  end
  
 function PLUGIN:OnUserConnect( netuser )
-	rust.SendChatToUser( netuser, "[ANNOUNCE]", "Brian is the bomb.com" )
+  rust.SendChatToUser( netuser, "[ANNOUNCE]", "Brian is the bomb.com" )
 end
 
 function PLUGIN:cmdAnnounce( netuser, cmd, args )
-rust.BroadcastChat( "[ANNOUNCE]", self.Announcement.title )
+  rust.BroadcastChat( "[ANNOUNCE]", self.Announcement.title )
 end
