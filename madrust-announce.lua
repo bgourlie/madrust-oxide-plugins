@@ -4,8 +4,10 @@ PLUGIN.Version = "0.1"
 PLUGIN.Author = "W. Brian Gourlie"
 
 function PLUGIN:Init()
+  self.Config = {}
   self.Announcement = {}
-  print("init madrust-announce")	
+  print("init madrust-announce")
+  self:LoadConfig()
   self:AddChatCommand( "announce", self.CmdAnnounce )
 
   print("requesting data from subreddit")
@@ -38,4 +40,20 @@ end
 
 function PLUGIN:CmdAnnounce( netuser, cmd, args )
   rust.BroadcastChat( "[ANNOUNCE]", self.Announcement.title )
+end
+
+function PLUGIN:LoadConfig()
+  print("Loading madrust-announce config.")
+  local _file = util.GetDatafile( "cfg_madrust_announce" )
+  local _txt = _file:GetText()
+  print("config text: " .. _txt)
+  local _conf = json.decode( _txt )
+
+  if (not(_conf)) then
+    print ("Configuration is missing or malformed.")
+    return false
+  end
+
+  self.Config = _conf.conf
+  print("subbreddit is " .. self.Config.subreddit)
 end
