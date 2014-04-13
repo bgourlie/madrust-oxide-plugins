@@ -20,7 +20,7 @@ function PLUGIN:Init()
           print("announcement is " .. title)
           self.Announcement = { 
               title = string.sub(_listing.data.title, 16),
-              id = _listing.data.id
+              id = _listing.data.id,
               created_utc = _listing.data.created_utc
           }
           break
