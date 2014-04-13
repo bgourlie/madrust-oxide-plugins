@@ -19,7 +19,9 @@ function PLUGIN:Init()
         if string.sub(string.upper(title), 0, 15) == "[ANNOUNCEMENT] " then
           print("announcement is " .. title)
           self.Announcement = { 
-              title = string.sub(_listing.data.title, 16)
+              title = string.sub(_listing.data.title, 16),
+              id = _listing.data.id
+              created_utc = _listing.data.created_utc
           }
           break
         end
