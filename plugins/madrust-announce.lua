@@ -52,17 +52,16 @@ function PLUGIN:RetrieveAnnouncement(callback)
   webrequest.Send (requestUrl, 
     function(respCode, response)
       print(string.format("received subreddit response [HTTP %d]", respCode))
-      local resp = json.decode(response)
-      for _, listing in pairs(resp.data.children) do
-        local title = listing.data.title
-        local announcement = self:ExtractAnnouncement(title)
-        if announcement and self:RedditUserIsAdmin(listing.data.author) then
+      local listings = self:LoadListingsIntoTable(response)
+      for _, listing in pairs(listings) do
+        local announcement = self:ExtractAnnouncement(listing.title)
+        if announcement and self:RedditUserIsAdmin(listing.author) then
           callback(
           { 
               isLoaded = true,
-              title = string.sub(listing.data.title, 16),
-              id = listing.data.id,
-              created_utc = listing.data.created_utc
+              title = string.sub(listing.title, 16),
+              id = listing.id,
+              created_utc = listing.created_utc
           })
           break
         end
@@ -115,6 +114,21 @@ function PLUGIN:InitConfig()
     subreddit_admins = subreddit_admins
   }
 end
+
+-- Parse the subbredit json, massage it into saner model
+function PLUGIN:LoadListingsIntoTable(listingsJson)
+  local resp = json.decode(listingsJson)
+
+  local listings = {}
+  for index, listing in pairs(resp.data.children) do
+    listings[index].author = listing.data.author
+    listings[index].title = listing.data.title
+    listings[index].created_utc = listing.data.created_utc
+    listing[index].id = listing.data.id
+  end
+
+  return listings
+end 
 
 -- TODO: move to some sort of util api
 function PLUGIN:LoadConfigIntoTable()
