@@ -182,3 +182,39 @@ describe("RedditUserIsAdmin", function()
     assert.are.equal(false, PLUGIN:RedditUserIsAdmin("johndoe"))
   end)
 end)
+
+describe("RetrieveAnnouncement", function() 
+  before_each(function() 
+    PLUGIN.config.subreddit_admins = {}
+    PLUGIN.config.subreddit_admins["bgzee"] = true
+    PLUGIN.config.subreddit = "madrust"
+    PLUGIN.config.announcement_prefix = "[ANNOUNCEMENT]"
+  end)
+
+  it("should work", function()
+    -- Arrange
+    webrequest = {}
+    webrequest.Send = function(requestUrl, callback)
+      callback(200, "")
+    end
+  
+    PLUGIN.LoadListingsIntoTable = function(self, json)
+      local ret = {}
+      ret[0] = {
+        title = "[ANNOUNCEMENT] Hello there earthlings!",
+        author = "bgzee",
+        created_utc = 1397488776.0 
+      }
+
+      return ret
+    end
+    local announcement = {}
+    
+    PLUGIN:RetrieveAnnouncement(function(retAnnounce) 
+      announcement = retAnnounce
+    end)
+    
+    print("before assert")
+    assert.are.equal(true, announcement.isLoaded)
+  end)
+end)
