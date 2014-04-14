@@ -1,4 +1,4 @@
-package.path = package.path .. ";../madrust-announce.lua"
+package.path = package.path .. ";../plugins/madrust-announce.lua"
 
 require("busted")
 require("madrust-announce")
