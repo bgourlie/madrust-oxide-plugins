@@ -60,8 +60,7 @@ function PLUGIN:RetrieveAnnouncement(callback)
           break
         end
       end
-    end
-  )
+    end)
 end
 
 function PLUGIN:InitConfig()
