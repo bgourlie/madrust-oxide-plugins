@@ -31,12 +31,12 @@ end
 function PLUGIN:EscapePatternChars(text)
   return string.gsub(text, "(.)",
     function(c)
-      if string.match(c, "[%[%]%(%)%%]") then return "%" .. c end
+      if string.match(c, "[%[%]%(%)%.%%]") then return "%" .. c end
     end)
 end
 
 function PLUGIN:ExtractAnnouncement(linkTitle)
-  local prefixPattern = "^" .. self:EscapePatternChars(self.config.announcement_prefix) .. "%s?(.+)"
+  local prefixPattern = "^" .. self:EscapePatternChars(self.config.announcement_prefix) .. "%s*(.+)"
   return string.match(linkTitle, prefixPattern)
 end
 
