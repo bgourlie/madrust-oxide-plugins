@@ -1,3 +1,5 @@
+PLUGIN = PLUGIN or {} -- accommodates testing
+
 PLUGIN.Title = "madrust-announce"
 PLUGIN.Description = "Broadcast announcements using a subreddit as the source."
 PLUGIN.Version = "0.1"
