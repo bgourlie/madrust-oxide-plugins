@@ -67,3 +67,89 @@ describe("ExtractAnnouncement", function()
     assert.are.equal("They don't dance no mo'", extracted)
   end)
 end)
+
+describe("GetConfig", function() 
+  it("should require setting \"subreddit\"", function() 
+    -- Arrange
+    PLUGIN.LoadConfigIntoTable = function(self)
+      return {
+        announcer = "[ANNOUNCE]",
+        announcement_prefix = "[ANNOUNCEMENT]",
+        subreddit_admins = {"bgzee"}
+      }
+    end
+    
+    -- Act
+    local result = PLUGIN:InitConfig()
+
+    -- Assert
+    assert.are.equal(false, result)
+  end)
+
+  it("should require setting \"subreddit_admins\"", function() 
+    -- Arrange
+    PLUGIN.LoadConfigIntoTable = function(self)
+      return {
+        announcer = "[ANNOUNCE]",
+        announcement_prefix = "[ANNOUNCEMENT]",
+        subreddit = "madrust"
+      }
+    end
+    
+    -- Act
+    local result = PLUGIN:InitConfig()
+
+    -- Assert
+    assert.are.equal(false, result)
+  end)
+
+  it("should require at least one subreddit_admin", function() 
+    -- Arrange
+    PLUGIN.LoadConfigIntoTable = function(self)
+      return {
+        announcer = "[ANNOUNCE]",
+        announcement_prefix = "[ANNOUNCEMENT]",
+        subreddit = "madrust",
+        subreddit_admins = {}
+      }
+    end
+    
+    -- Act
+    local result = PLUGIN:InitConfig()
+
+    -- Assert
+    assert.are.equal(false, result)
+  end)
+
+  it("should use default value \"[ANNOUNCE]\" for setting \"announcer\" if not specified", function() 
+    -- Arrange
+    PLUGIN.LoadConfigIntoTable = function(self)
+      return {
+        subreddit = "madrust",
+        subreddit_admins = {"bgzee"}
+      }
+    end
+    
+    -- Act
+    local result = PLUGIN:InitConfig()
+
+    -- Assert
+    assert.are.equal("[ANNOUNCE]", result.announcer)
+  end)
+
+  it("should use default value \"[ANNOUNCEMENT]\" for setting \"announcement_prefix\" if not specified", function() 
+    -- Arrange
+    PLUGIN.LoadConfigIntoTable = function(self)
+      return {
+        subreddit = "madrust",
+        subreddit_admins = {"bgzee"}
+      }
+    end
+    
+    -- Act
+    local result = PLUGIN:InitConfig()
+
+    -- Assert
+    assert.are.equal("[ANNOUNCEMENT]", result.announcement_prefix)
+  end)
+end)
