@@ -46,9 +46,7 @@ end)
 
 describe("ExtractAnnouncement", function()
   before_each(function() 
-    PLUGIN.config = {
-      announcement_prefix = "[ANNOUNCEMENT]"
-    }
+    PLUGIN.config.announcement_prefix = "[ANNOUNCEMENT]"
   end)
 
   it("shouldn't extract whitespace after prefix", function()
