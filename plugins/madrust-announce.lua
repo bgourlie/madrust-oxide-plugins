@@ -9,6 +9,7 @@ function PLUGIN:Init()
   print("init madrust-announce")
   self.config = self:InitConfig()
   self.announcement = { isLoaded = false }
+
   self:AddChatCommand("announce", self.CmdAnnounce)
   self:RetrieveAnnouncement(
     function(announcement) 
@@ -25,6 +26,10 @@ function PLUGIN:CmdAnnounce(netuser, cmd, args)
   if self.announcement.isLoaded then
     rust.SendChatToUser(netuser, self.config.announcer, self.announcement.title)
   end
+end
+
+function PLUGIN:RedditUserIsAdmin(redditUser)
+  return self.config.subreddit_admins[redditUser] == true
 end
 
 -- TODO: move to some sort of util api
@@ -48,14 +53,16 @@ function PLUGIN:RetrieveAnnouncement(callback)
     function(respCode, response)
       print(string.format("received subreddit response [HTTP %d]", respCode))
       local resp = json.decode(response)
-      for _, _listing in pairs(resp.data.children) do
-        local title = _listing.data.title
-        if self:ExtractAnnouncement(title) then
-          callback({ 
+      for _, listing in pairs(resp.data.children) do
+        local title = listing.data.title
+        local announcement = self:ExtractAnnouncement(title)
+        if announcement and self:RedditUserIsAdmin(listing.data.author) then
+          callback(
+          { 
               isLoaded = true,
-              title = string.sub(_listing.data.title, 16),
-              id = _listing.data.id,
-              created_utc = _listing.data.created_utc
+              title = string.sub(listing.data.title, 16),
+              id = listing.data.id,
+              created_utc = listing.data.created_utc
           })
           break
         end
@@ -93,7 +100,20 @@ function PLUGIN:InitConfig()
   if not(conf.announcer) then conf.announcer = "[ANNOUNCE]" end
   if not(conf.announcement_prefix) then conf.announcement_prefix = "[ANNOUNCEMENT]" end
 
-  return conf
+  local subreddit_admins = {}
+
+  -- convert the table such that the names are keys for fast lookup
+  for _, admin in pairs(conf.subreddit_admins) do
+    subreddit_admins[admin] = true
+  end
+  
+  return 
+  {
+    announcer = conf.announcer,
+    announcement_prefix = conf.announcement_prefix,
+    subreddit = conf.subreddit,
+    subreddit_admins = subreddit_admins
+  }
 end
 
 -- TODO: move to some sort of util api
