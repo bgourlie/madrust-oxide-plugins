@@ -7,6 +7,8 @@ Sample config file for madrust-announce:
       "conf" : 
       {
         "announcer" : "[ANNOUNCE]",
-        "subreddit" : "madrust"
+        "announcement_prefix" : "[ANNOUNCEMENT]",
+        "subreddit" : "madrust",
+        "subreddit_admins" : ["bgzee"]
       }
     }
