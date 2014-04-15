@@ -12,12 +12,26 @@ function PLUGIN:Init()
   self.announcement = nil
 
   self:AddChatCommand("announce", self.CmdAnnounce)
-  self:RetrieveAnnouncement(
-    function(announcement) 
-      self.announcement = announcement
-      rust.BroadcastChat(self.config.announcer, self.announcement)
-    end)
+
+  local checkfn = function()
+      self:RetrieveAnnouncement(function(announcement) 
+        if self.announcement ~= announcement then
+          self.announcement = announcement
+          rust.BroadcastChat(self.config.announcer, self.announcement)
+        end
+      end)
+  end
+
+  -- initial check
+  checkfn()
+
+  -- continue check every n seconds, where n = config.check_interval
+  self.checkTimer = timer.Repeat(self.config.check_interval, checkfn)
  end
+
+function PLUGIN:Unload()
+  if self.checkTimer then self.checkTimer:Destroy() end
+end
 
 function PLUGIN:OnUserConnect(netuser)
   self:CmdAnnounce(netuser)
@@ -58,7 +72,6 @@ function PLUGIN:RetrieveAnnouncement(callback)
         local announcement = self:ExtractAnnouncement(listing.title)
         if announcement and self:RedditUserIsAdmin(listing.author) then
           announcementFound = true
-          print("announcement is " .. announcement)
           callback(announcement)
           break
         end
@@ -74,14 +87,43 @@ function PLUGIN:InitConfig()
   local conf = self:LoadConfigIntoTable()  
 
   -- verify required settings exist
-  if not(conf.subreddit) then
-    print ("Configuration is missing required setting \"subreddit\"")
-    return false
+  if not conf.subreddit then
+    error("Configuration is missing required setting \"subreddit\"")
   end
 
-  if not(conf.subreddit_admins) then
-    print ("Configuration is missing required setting \"subreddit_admins\"")
-    return false
+  if not conf.subreddit_admins then
+    error("Configuration is missing required setting \"subreddit_admins\"")
+  end
+
+  -- apply default settings for certain settings if not specified
+  if not(conf.announcer) then conf.announcer = "[ANNOUNCE]" end
+  if not(conf.announcement_prefix) then conf.announcement_prefix = "[ANNOUNCEMENT]" end
+  if not(conf.msg_no_announcements) then conf.msg_no_announcements = "There are no recent announcements." end
+  if not(conf.check_interval) then conf.check_interval = 3600 end
+
+  -- makes sure we have expected types
+  if type(conf.announcer) ~= "string" then
+    error("\"announcer\" must be a string")
+  end
+
+  if type(conf.announcement_prefix) ~= "string" then
+    error("\"announcement_prefix\" must be a string")
+  end
+
+  if type(conf.msg_no_announcements) ~= "string" then
+    error("\"msg_no_announcements\" must be a string")
+  end
+
+  if type(conf.check_interval) ~= "number" then
+    error("\"check_interval\" must be a number")
+  end
+
+  if type(conf.subreddit) ~= "string" then
+    error("\"subreddit\" must be a string")
+  end
+
+  if type(conf.subreddit_admins) ~= "table" then
+    error("\"subreddit_admins\" must be an array")
   end
 
   -- hacky way to determine if at least admin has been specified
@@ -91,15 +133,11 @@ function PLUGIN:InitConfig()
     break
   end
   
-  if not(adminSpecified) then
-    print ("You must specify at least one subreddit admin.")
+  if not adminSpecified then
+    error("You must specify at least one subreddit admin.")
     return false
   end
 
-  -- apply default settings for certain settings if not specified
-  if not(conf.announcer) then conf.announcer = "[ANNOUNCE]" end
-  if not(conf.announcement_prefix) then conf.announcement_prefix = "[ANNOUNCEMENT]" end
-  if not(conf.msg_no_announcements) then conf.msg_no_announcements = "There are no recent announcements." end
   local subreddit_admins = {}
 
   -- convert the table such that the names are keys for fast lookup
@@ -113,6 +151,7 @@ function PLUGIN:InitConfig()
     announcement_prefix = conf.announcement_prefix,
     msg_no_announcements = conf.msg_no_announcements,
     subreddit = conf.subreddit,
+    check_interval = conf.check_interval,
     subreddit_admins = subreddit_admins
   }
 end
@@ -122,7 +161,6 @@ function PLUGIN:LoadListingsIntoTable(listingsJson)
   local resp = json.decode(listingsJson)
   local listings = {}
   for index, listing in pairs(resp.data.children) do
-    print("index is " .. index)
     listings[index] = 
     {
       author = listing.data.author,
@@ -142,7 +180,7 @@ function PLUGIN:LoadConfigIntoTable()
   local _conf = json.decode(_txt)
 
   if not(_conf) or not(_conf.conf) then
-    print ("Configuration is missing or malformed.")
+    error("Configuration is missing or malformed.")
     return false
   end
   
