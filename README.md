@@ -10,6 +10,7 @@ Sample config file for madrust-announce:
         "announcement_prefix" : "[ANNOUNCEMENT]",
         "subreddit" : "madrust",
         "subreddit_admins" : ["bgzee"],
-        "msg_no_announcements" : "There are no recent announcements."
+        "msg_no_announcements" : "There are no recent announcements.",
+        "check_interval" : 3600
       }
     }
