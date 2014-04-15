@@ -26,7 +26,7 @@ function PLUGIN:Init()
   checkfn()
 
   -- continue check every n seconds, where n = config.check_interval
-  self.checkTimer = timer.Repeat(self.config.check_interval, checkfn)
+  self.checkTimer = timer.Repeat(self.config.subreddit.check_interval, checkfn)
  end
 
 function PLUGIN:Unload()
@@ -43,7 +43,7 @@ function PLUGIN:CmdAnnounce(netuser, cmd, args)
 end
 
 function PLUGIN:RedditUserIsAdmin(redditUser)
-  return self.config.subreddit_admins[redditUser] == true
+  return self.config.subreddit.admins[redditUser] == true
 end
 
 -- TODO: move to some sort of util api
@@ -55,13 +55,13 @@ function PLUGIN:EscapePatternChars(text)
 end
 
 function PLUGIN:ExtractAnnouncement(linkTitle)
-  local prefixPattern = "^" .. self:EscapePatternChars(self.config.announcement_prefix) .. "%s*(.+)"
+  local prefixPattern = "^" .. self:EscapePatternChars(self.config.subreddit.announcement_prefix) .. "%s*(.+)"
   return string.match(linkTitle, prefixPattern)
 end
 
 function PLUGIN:RetrieveAnnouncement(callback)
-  print(string.format("requesting subreddit data from %q", self.config.subreddit))
-  local requestUrl = string.format("http://www.reddit.com/r/%s/.json", self.config.subreddit)
+  print(string.format("requesting subreddit data from %q", self.config.subreddit.name))
+  local requestUrl = string.format("http://www.reddit.com/r/%s/.json", self.config.subreddit.name)
   
   webrequest.Send (requestUrl, 
     function(respCode, response)
@@ -91,44 +91,48 @@ function PLUGIN:InitConfig()
     error("Configuration is missing required setting \"subreddit\"")
   end
 
-  if not conf.subreddit_admins then
-    error("Configuration is missing required setting \"subreddit_admins\"")
+  if not conf.subreddit.name then
+    error("Configuration is missing required setting \"subreddit.name\"")
+  end
+
+  if not conf.subreddit.admins then
+    error("Configuration is missing required setting \"subreddit.admins\"")
   end
 
   -- apply default settings for certain settings if not specified
-  if not(conf.announcer) then conf.announcer = "[ANNOUNCE]" end
-  if not(conf.announcement_prefix) then conf.announcement_prefix = "[ANNOUNCEMENT]" end
-  if not(conf.msg_no_announcements) then conf.msg_no_announcements = "There are no recent announcements." end
-  if not(conf.check_interval) then conf.check_interval = 3600 end
+  if not conf.announcer then conf.announcer = "[ANNOUNCE]" end
+  if not conf.subreddit.announcement_prefix then conf.subreddit.announcement_prefix = "[ANNOUNCEMENT]" end
+  if not conf.msg_no_announcements then conf.msg_no_announcements = "There are no recent announcements." end
+  if not conf.subreddit.check_interval then conf.subreddit.check_interval = 3600 end
 
   -- makes sure we have expected types
   if type(conf.announcer) ~= "string" then
     error("\"announcer\" must be a string")
   end
 
-  if type(conf.announcement_prefix) ~= "string" then
-    error("\"announcement_prefix\" must be a string")
-  end
-
   if type(conf.msg_no_announcements) ~= "string" then
     error("\"msg_no_announcements\" must be a string")
   end
 
-  if type(conf.check_interval) ~= "number" then
-    error("\"check_interval\" must be a number")
+  if type(conf.subreddit.announcement_prefix) ~= "string" then
+    error("\"subreddit.announcement_prefix\" must be a string")
   end
 
-  if type(conf.subreddit) ~= "string" then
-    error("\"subreddit\" must be a string")
+  if type(conf.subreddit.check_interval) ~= "number" then
+    error("\"subreddit.check_interval\" must be a number")
   end
 
-  if type(conf.subreddit_admins) ~= "table" then
-    error("\"subreddit_admins\" must be an array")
+  if type(conf.subreddit.name) ~= "string" then
+    error("\"subreddit.name\" must be a string")
+  end
+
+  if type(conf.subreddit.admins) ~= "table" then
+    error("\"subreddit.admins\" must be an array")
   end
 
   -- hacky way to determine if at least admin has been specified
   local adminSpecified = false
-  for i, admin in pairs(conf.subreddit_admins) do
+  for i, admin in pairs(conf.subreddit.admins) do
     adminSpecified = true
     break
   end
@@ -141,18 +145,20 @@ function PLUGIN:InitConfig()
   local subreddit_admins = {}
 
   -- convert the table such that the names are keys for fast lookup
-  for _, admin in pairs(conf.subreddit_admins) do
+  for _, admin in pairs(conf.subreddit.admins) do
     subreddit_admins[admin] = true
   end
   
   return 
   {
     announcer = conf.announcer,
-    announcement_prefix = conf.announcement_prefix,
     msg_no_announcements = conf.msg_no_announcements,
-    subreddit = conf.subreddit,
-    check_interval = conf.check_interval,
-    subreddit_admins = subreddit_admins
+    subreddit = {
+      name = conf.subreddit.name,
+      check_interval = conf.subreddit.check_interval,
+      announcement_prefix = conf.subreddit.announcement_prefix,
+      admins = subreddit_admins
+    }
   }
 end
 

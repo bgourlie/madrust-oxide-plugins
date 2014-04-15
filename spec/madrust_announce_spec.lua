@@ -46,7 +46,8 @@ end)
 
 describe("ExtractAnnouncement", function()
   before_each(function() 
-    PLUGIN.config.announcement_prefix = "[ANNOUNCEMENT]"
+    PLUGIN.config.subreddit = {}
+    PLUGIN.config.subreddit.announcement_prefix = "[ANNOUNCEMENT]"
   end)
 
   it("shouldn't extract whitespace after prefix", function()
@@ -60,7 +61,8 @@ describe("ExtractAnnouncement", function()
   end)
 
   it("should handle wierd characters smoke test", function()
-    PLUGIN.config = { announcement_prefix = "%%][ANN(.)O[.])[}]%UNCE%MENT]" }
+    PLUGIN.config.subreddit = {}
+    PLUGIN.config.subreddit.announcement_prefix = "%%][ANN(.)O[.])[}]%UNCE%MENT]" 
     local extracted = PLUGIN:ExtractAnnouncement("%%][ANN(.)O[.])[}]%UNCE%MENT] They don't dance no mo'")
     assert.are.equal("They don't dance no mo'", extracted)
   end)
@@ -71,10 +73,7 @@ describe("GetConfig", function()
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
-        announcer = "[ANNOUNCE]",
-        announcement_prefix = "[ANNOUNCEMENT]",
-        subreddit_admins = {"bgzee"},
-        check_interval = 3600
+        announcer = "[ANNOUNCE]"
       }
     end
 
@@ -86,32 +85,36 @@ describe("GetConfig", function()
     assert.has_error(errfn, "Configuration is missing required setting \"subreddit\"")
   end)
 
-  it("should require setting \"subreddit_admins\"", function() 
+  it("should require setting \"subreddit.name\"", function() 
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
         announcer = "[ANNOUNCE]",
-        announcement_prefix = "[ANNOUNCEMENT]",
-        subreddit = "madrust"
+        subreddit = {
+          announcement_prefix = "[ANNOUNCEMENT]",
+          admins = {"bgzee"},
+          check_interval = 3600
+        }
       }
     end
-    
+
     local errfn = function()
       PLUGIN:InitConfig()
     end
 
     -- Assert
-    assert.has_error(errfn, "Configuration is missing required setting \"subreddit_admins\"")
+    assert.has_error(errfn, "Configuration is missing required setting \"subreddit.name\"")
   end)
 
-    it("should fail if \"subreddit_admins\" isn't a table", function() 
+  it("should require setting \"subreddit.admins\"", function() 
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
         announcer = "[ANNOUNCE]",
-        announcement_prefix = "[ANNOUNCEMENT]",
-        subreddit = "madrust",
-        subreddit_admins = "not a table!"
+        subreddit = {
+          announcement_prefix = "[ANNOUNCEMENT]",
+          name = "madrust"
+        }
       }
     end
     
@@ -120,36 +123,19 @@ describe("GetConfig", function()
     end
 
     -- Assert
-    assert.has_error(errfn, "\"subreddit_admins\" must be an array")
-  end)
-  
-  it("should fail if \"subreddit\" isn't a string", function() 
-    -- Arrange
-    PLUGIN.LoadConfigIntoTable = function(self)
-      return {
-        announcer = "[ANNOUNCE]",
-        announcement_prefix = "[ANNOUNCEMENT]",
-        subreddit = 3243,
-        subreddit_admins = {"bgzee"},
-      }
-    end
-    
-    local errfn = function()
-      PLUGIN:InitConfig()
-    end
-
-    -- Assert
-    assert.has_error(errfn, "\"subreddit\" must be a string")
+    assert.has_error(errfn, "Configuration is missing required setting \"subreddit.admins\"")
   end)
 
-  it("should fail if \"announcement_prefix\" isn't a string", function() 
+    it("should fail if \"subreddit.admins\" isn't a table", function() 
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
         announcer = "[ANNOUNCE]",
-        announcement_prefix = 234,
-        subreddit = "madrust",
-        subreddit_admins = {"bgzee"},
+        subreddit = {
+          announcement_prefix = "[ANNOUNCEMENT]",
+          name = "madrust",
+          admins = "not a table!"
+        }
       }
     end
     
@@ -158,7 +144,49 @@ describe("GetConfig", function()
     end
 
     -- Assert
-    assert.has_error(errfn, "\"announcement_prefix\" must be a string")
+    assert.has_error(errfn, "\"subreddit.admins\" must be an array")
+  end)
+
+  it("should fail if \"subreddit.name\" isn't a string", function() 
+    -- Arrange
+    PLUGIN.LoadConfigIntoTable = function(self)
+      return {
+        announcer = "[ANNOUNCE]",
+        subreddit = {
+          announcement_prefix = "[ANNOUNCEMENT]",
+          name = 3243,
+          admins = {"bgzee"},
+        }
+      }
+    end
+    
+    local errfn = function()
+      PLUGIN:InitConfig()
+    end
+
+    -- Assert
+    assert.has_error(errfn, "\"subreddit.name\" must be a string")
+  end)
+
+  it("should fail if \"subreddit.announcement_prefix\" isn't a string", function() 
+    -- Arrange
+    PLUGIN.LoadConfigIntoTable = function(self)
+      return {
+        announcer = "[ANNOUNCE]",
+        subreddit = {
+          announcement_prefix = 234,
+          name = "madrust",
+          admins = {"bgzee"}
+        }
+      }
+    end
+    
+    local errfn = function()
+      PLUGIN:InitConfig()
+    end
+
+    -- Assert
+    assert.has_error(errfn, "\"subreddit.announcement_prefix\" must be a string")
   end)
 
   it("should fail if \"announcer\" isn't a string", function() 
@@ -166,9 +194,11 @@ describe("GetConfig", function()
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
         announcer = 343,
-        announcement_prefix = "[ANNOUNCEMENT]",
-        subreddit = "madrust",
-        subreddit_admins = {"bgzee"},
+        subreddit = {
+          announcement_prefix = "[ANNOUNCEMENT]",
+          name = "madrust",
+          admins = {"bgzee"}
+        }
       }
     end
     
@@ -185,9 +215,11 @@ describe("GetConfig", function()
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
         announcer = "[ANNOUNCE]",
-        announcement_prefix = "[ANNOUNCEMENT]",
-        subreddit = "madrust",
-        subreddit_admins = {"bgzee"},
+        subreddit = {
+          announcement_prefix = "[ANNOUNCEMENT]",
+          name = "madrust",
+          admins = {"bgzee"},
+        },
         msg_no_announcements = 2343
       }
     end
@@ -205,9 +237,11 @@ describe("GetConfig", function()
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
         announcer = "[ANNOUNCE]",
-        announcement_prefix = "[ANNOUNCEMENT]",
-        subreddit = "madrust",
-        subreddit_admins = {}
+        subreddit = {
+          announcement_prefix = "[ANNOUNCEMENT]",
+          name = "madrust",
+          admins = {}
+        }
       }
     end
 
@@ -223,8 +257,10 @@ describe("GetConfig", function()
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
-        subreddit = "madrust",
-        subreddit_admins = {"bgzee"}
+        subreddit = {
+          name = "madrust",
+          admins = {"bgzee"}
+        }
       }
     end
     
@@ -239,8 +275,10 @@ describe("GetConfig", function()
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
-        subreddit = "madrust",
-        subreddit_admins = {"bgzee"}
+        subreddit = {
+          name = "madrust",
+          admins = {"bgzee"}
+        }
       }
     end
     
@@ -248,15 +286,17 @@ describe("GetConfig", function()
     local result = PLUGIN:InitConfig()
 
     -- Assert
-    assert.are.equal("[ANNOUNCEMENT]", result.announcement_prefix)
+    assert.are.equal("[ANNOUNCEMENT]", result.subreddit.announcement_prefix)
   end)
 
   it("should use default value \"There are no recent announcements.\" for setting \"msg_no_announcements\" if not specified", function() 
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
-        subreddit = "madrust",
-        subreddit_admins = {"bgzee"}
+        subreddit = {
+          name = "madrust",
+          admins = {"bgzee"}
+        }
       }
     end
     
@@ -267,28 +307,32 @@ describe("GetConfig", function()
     assert.are.equal("There are no recent announcements.", result.msg_no_announcements)
   end)
 
-    it("should use default value 3600 for setting \"check_interval\" if not specified", function() 
+    it("should use default value 3600 for setting \"subreddit.check_interval\" if not specified", function() 
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
-        subreddit = "madrust",
-        subreddit_admins = {"bgzee"}
+        subreddit = {
+        name = "madrust",
+        admins = {"bgzee"}
       }
+    }
     end
     
     -- Act
     local result = PLUGIN:InitConfig()
 
     -- Assert
-    assert.are.equal(3600, result.check_interval)
+    assert.are.equal(3600, result.subreddit.check_interval)
   end)
 
   it("should convert subreddit_admins to fast lookup table", function() 
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
-        subreddit = "madrust",
-        subreddit_admins = {"bgzee", "brettfavre"}
+        subreddit = {
+          name = "madrust",
+          admins = {"bgzee", "brettfavre"}
+        }
       }
     end
     
@@ -296,31 +340,34 @@ describe("GetConfig", function()
     local result = PLUGIN:InitConfig()
 
     -- Assert
-    assert.are.equal(true, result.subreddit_admins["bgzee"])
-    assert.are.equal(true, result.subreddit_admins["brettfavre"])
+    assert.are.equal(true, result.subreddit.admins["bgzee"])
+    assert.are.equal(true, result.subreddit.admins["brettfavre"])
   end)
 end)
 
 describe("RedditUserIsAdmin", function() 
   it("should return true if user is admin", function()
-    PLUGIN.config.subreddit_admins = {}
-    PLUGIN.config.subreddit_admins["bgzee"] = true
+    PLUGIN.config.subreddit = {}
+    PLUGIN.config.subreddit.admins = {}
+    PLUGIN.config.subreddit.admins["bgzee"] = true
     assert.are.equal(true, PLUGIN:RedditUserIsAdmin("bgzee"))
   end)
 
   it("should return false if user is admin", function()
-    PLUGIN.config.subreddit_admins = {}
-    PLUGIN.config.subreddit_admins["bgzee"] = true
+    PLUGIN.config.subreddit = {}
+    PLUGIN.config.subreddit.admins = {}
+    PLUGIN.config.subreddit.admins["bgzee"] = true
     assert.are.equal(false, PLUGIN:RedditUserIsAdmin("johndoe"))
   end)
 end)
 
 describe("RetrieveAnnouncement", function() 
   before_each(function() 
-    PLUGIN.config.subreddit_admins = {}
-    PLUGIN.config.subreddit_admins["bgzee"] = true
-    PLUGIN.config.subreddit = "madrust"
-    PLUGIN.config.announcement_prefix = "[ANNOUNCEMENT]"
+    PLUGIN.config.subreddit = {}
+    PLUGIN.config.subreddit.admins = {}
+    PLUGIN.config.subreddit.admins["bgzee"] = true
+    PLUGIN.config.subreddit.name = "madrust"
+    PLUGIN.config.subreddit.announcement_prefix = "[ANNOUNCEMENT]"
     PLUGIN.config.msg_no_announcements = "There ain't no announcements!"
 
     webrequest = {}
