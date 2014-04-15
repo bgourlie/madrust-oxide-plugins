@@ -151,6 +151,22 @@ describe("GetConfig", function()
     assert.are.equal("[ANNOUNCEMENT]", result.announcement_prefix)
   end)
 
+  it("should use default value \"There are no recent announcements.\" for setting \"msg_no_announcements\" if not specified", function() 
+    -- Arrange
+    PLUGIN.LoadConfigIntoTable = function(self)
+      return {
+        subreddit = "madrust",
+        subreddit_admins = {"bgzee"}
+      }
+    end
+    
+    -- Act
+    local result = PLUGIN:InitConfig()
+
+    -- Assert
+    assert.are.equal("There are no recent announcements.", result.msg_no_announcements)
+  end)
+
   it("should convert subreddit_admins to fast lookup table", function() 
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
@@ -189,15 +205,16 @@ describe("RetrieveAnnouncement", function()
     PLUGIN.config.subreddit_admins["bgzee"] = true
     PLUGIN.config.subreddit = "madrust"
     PLUGIN.config.announcement_prefix = "[ANNOUNCEMENT]"
-  end)
+    PLUGIN.config.msg_no_announcements = "There ain't no announcements!"
 
-  it("should work", function()
-    -- Arrange
     webrequest = {}
     webrequest.Send = function(requestUrl, callback)
       callback(200, "")
     end
-  
+  end)
+
+  it("should retrieve annoucement if author is admin", function()
+    -- Arrange 
     PLUGIN.LoadListingsIntoTable = function(self, json)
       local ret = {}
       ret[0] = {
@@ -214,7 +231,27 @@ describe("RetrieveAnnouncement", function()
       announcement = retAnnounce
     end)
     
-    print("before assert")
-    assert.are.equal(true, announcement.isLoaded)
+    assert.are.equal("Hello there earthlings!", announcement)
+  end)
+
+  it("should not retrieve announcement if author is not admin", function()
+    -- Arrange 
+    PLUGIN.LoadListingsIntoTable = function(self, json)
+      local ret = {}
+      ret[1] = {
+        title = "[ANNOUNCEMENT] Hello there earthlings!",
+        author = "george",
+        created_utc = 1397488776.0 
+      }
+
+      return ret
+    end
+    local announcement = {}
+    
+    PLUGIN:RetrieveAnnouncement(function(retAnnounce) 
+      announcement = retAnnounce
+    end)
+    
+    assert.are.equal(PLUGIN.config.msg_no_announcements, announcement)
   end)
 end)

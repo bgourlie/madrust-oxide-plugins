@@ -8,13 +8,14 @@ PLUGIN.Author = "W. Brian Gourlie"
 function PLUGIN:Init()
   print("init madrust-announce")
   self.config = self:InitConfig()
-  self.announcement = { isLoaded = false }
+  self.isLoading = true
+  self.announcement = nil
 
   self:AddChatCommand("announce", self.CmdAnnounce)
   self:RetrieveAnnouncement(
     function(announcement) 
       self.announcement = announcement
-      rust.BroadcastChat(self.config.announcer, self.announcement.title)
+      rust.BroadcastChat(self.config.announcer, self.announcement)
     end)
  end
 
@@ -23,9 +24,8 @@ function PLUGIN:OnUserConnect(netuser)
 end
 
 function PLUGIN:CmdAnnounce(netuser, cmd, args)
-  if self.announcement.isLoaded then
-    rust.SendChatToUser(netuser, self.config.announcer, self.announcement.title)
-  end
+  if not self.isLoading then return end
+  rust.SendChatToUser(netuser, self.config.announcer, self.announcement)
 end
 
 function PLUGIN:RedditUserIsAdmin(redditUser)
@@ -53,18 +53,19 @@ function PLUGIN:RetrieveAnnouncement(callback)
     function(respCode, response)
       print(string.format("received subreddit response [HTTP %d]", respCode))
       local listings = self:LoadListingsIntoTable(response)
+      local announcementFound = false
       for _, listing in pairs(listings) do
         local announcement = self:ExtractAnnouncement(listing.title)
         if announcement and self:RedditUserIsAdmin(listing.author) then
-          callback(
-          { 
-              isLoaded = true,
-              title = string.sub(listing.title, 16),
-              id = listing.id,
-              created_utc = listing.created_utc
-          })
+          announcementFound = true
+          print("announcement is " .. announcement)
+          callback(announcement)
           break
         end
+      end
+
+      if not(announcementFound) then
+        callback(self.config.msg_no_announcements)
       end
     end)
 end
@@ -98,7 +99,7 @@ function PLUGIN:InitConfig()
   -- apply default settings for certain settings if not specified
   if not(conf.announcer) then conf.announcer = "[ANNOUNCE]" end
   if not(conf.announcement_prefix) then conf.announcement_prefix = "[ANNOUNCEMENT]" end
-
+  if not(conf.msg_no_announcements) then conf.msg_no_announcements = "There are no recent announcements." end
   local subreddit_admins = {}
 
   -- convert the table such that the names are keys for fast lookup
@@ -110,6 +111,7 @@ function PLUGIN:InitConfig()
   {
     announcer = conf.announcer,
     announcement_prefix = conf.announcement_prefix,
+    msg_no_announcements = conf.msg_no_announcements,
     subreddit = conf.subreddit,
     subreddit_admins = subreddit_admins
   }
@@ -118,13 +120,16 @@ end
 -- Parse the subbredit json, massage it into saner model
 function PLUGIN:LoadListingsIntoTable(listingsJson)
   local resp = json.decode(listingsJson)
-
   local listings = {}
   for index, listing in pairs(resp.data.children) do
-    listings[index].author = listing.data.author
-    listings[index].title = listing.data.title
-    listings[index].created_utc = listing.data.created_utc
-    listing[index].id = listing.data.id
+    print("index is " .. index)
+    listings[index] = 
+    {
+      author = listing.data.author,
+      title = listing.data.title,
+      created_utc = listing.data.created_utc,
+      id = listing.data.id
+    }
   end
 
   return listings
@@ -134,7 +139,7 @@ end
 function PLUGIN:LoadConfigIntoTable()
   local _file = util.GetDatafile( "cfg_madrust_announce" )
   local _txt = _file:GetText()
-  local _conf = json.decode( _txt )
+  local _conf = json.decode(_txt)
 
   if not(_conf) or not(_conf.conf) then
     print ("Configuration is missing or malformed.")
