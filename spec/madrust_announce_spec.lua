@@ -69,11 +69,11 @@ describe("ExtractAnnouncement", function()
 end)
 
 describe("GetConfig", function() 
-  it("should require setting \"subreddit\"", function() 
+  it("should require setting \"subreddit\" if interpolating subreddit data", function() 
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
-        announcer = "[ANNOUNCE]"
+        announcement = {"%subredditAnnouncement%"}
       }
     end
 
@@ -85,11 +85,28 @@ describe("GetConfig", function()
     assert.has_error(errfn, "Configuration is missing required setting \"subreddit\"")
   end)
 
-  it("should require setting \"subreddit.name\"", function() 
+  it("shouldn't require setting \"subreddit\" if not interpolating subreddit data", function() 
+    -- Arrange
+    PLUGIN.LoadConfigIntoTable = function(self)
+      return {
+        announcement = {"static announcement"}
+      }
+    end
+
+    local errfn = function()
+      PLUGIN:InitConfig()
+    end
+
+    -- Assert
+    assert.has_no.errors(errfn)
+  end)
+
+  it("should require setting \"subreddit.name\" if interpolating subreddit data", function() 
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
         announcer = "[ANNOUNCE]",
+        announcement = {"%subredditAnnouncement%"},
         subreddit = {
           announcement_prefix = "[ANNOUNCEMENT]",
           admins = {"bgzee"},
@@ -106,11 +123,12 @@ describe("GetConfig", function()
     assert.has_error(errfn, "Configuration is missing required setting \"subreddit.name\"")
   end)
 
-  it("should require setting \"subreddit.admins\"", function() 
+  it("should require setting \"subreddit.admins\" if interpolating subreddit data", function() 
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
         announcer = "[ANNOUNCE]",
+        announcement = {"%subredditAnnouncement%"},
         subreddit = {
           announcement_prefix = "[ANNOUNCEMENT]",
           name = "madrust"
@@ -131,6 +149,7 @@ describe("GetConfig", function()
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
         announcer = "[ANNOUNCE]",
+        announcement = {"%subredditAnnouncement%"},
         subreddit = {
           announcement_prefix = "[ANNOUNCEMENT]",
           name = "madrust",
@@ -152,6 +171,7 @@ describe("GetConfig", function()
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
         announcer = "[ANNOUNCE]",
+        announcement = {"%subredditAnnouncement%"},
         subreddit = {
           announcement_prefix = "[ANNOUNCEMENT]",
           name = 3243,
@@ -173,6 +193,7 @@ describe("GetConfig", function()
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
         announcer = "[ANNOUNCE]",
+        announcement = {"%subredditAnnouncement%"},
         subreddit = {
           announcement_prefix = 234,
           name = "madrust",
@@ -194,6 +215,7 @@ describe("GetConfig", function()
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
         announcer = 343,
+        announcement = {"some announcement"},
         subreddit = {
           announcement_prefix = "[ANNOUNCEMENT]",
           name = "madrust",
@@ -215,6 +237,7 @@ describe("GetConfig", function()
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
         announcer = "[ANNOUNCE]",
+        announcement = {"some announcement"},
         subreddit = {
           announcement_prefix = "[ANNOUNCEMENT]",
           name = "madrust",
@@ -232,11 +255,12 @@ describe("GetConfig", function()
     assert.has_error(errfn, "\"msg_no_announcements\" must be a string")
   end)
 
-  it("should require at least one subreddit_admin", function() 
+  it("should require at least one subreddit_admin if interpolating subreddit data", function() 
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
         announcer = "[ANNOUNCE]",
+        announcement = {"%subredditAnnouncement%"},
         subreddit = {
           announcement_prefix = "[ANNOUNCEMENT]",
           name = "madrust",
@@ -257,10 +281,7 @@ describe("GetConfig", function()
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
-        subreddit = {
-          name = "madrust",
-          admins = {"bgzee"}
-        }
+        announcement = {"some announcement"}
       }
     end
     
@@ -275,6 +296,7 @@ describe("GetConfig", function()
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
+        announcement = {"%subredditAnnouncement%"},
         subreddit = {
           name = "madrust",
           admins = {"bgzee"}
@@ -293,6 +315,7 @@ describe("GetConfig", function()
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
+        announcement = {"some announcement"},
         subreddit = {
           name = "madrust",
           admins = {"bgzee"}
@@ -311,6 +334,7 @@ describe("GetConfig", function()
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
+        announcement = {"%subredditAnnouncement%"},
         subreddit = {
         name = "madrust",
         admins = {"bgzee"}
@@ -329,6 +353,7 @@ describe("GetConfig", function()
     -- Arrange
     PLUGIN.LoadConfigIntoTable = function(self)
       return {
+        announcement = {"%subredditAnnouncement%"},
         subreddit = {
           name = "madrust",
           admins = {"bgzee", "brettfavre"}
@@ -361,7 +386,7 @@ describe("RedditUserIsAdmin", function()
   end)
 end)
 
-describe("RetrieveAnnouncement", function() 
+describe("RetrieveSubredditAnnouncement", function() 
   before_each(function() 
     PLUGIN.config.subreddit = {}
     PLUGIN.config.subreddit.admins = {}
@@ -390,7 +415,7 @@ describe("RetrieveAnnouncement", function()
     end
     local announcement = {}
     
-    PLUGIN:RetrieveAnnouncement(function(retAnnounce) 
+    PLUGIN:RetrieveSubredditAnnouncement(function(retAnnounce) 
       announcement = retAnnounce
     end)
     
@@ -411,10 +436,30 @@ describe("RetrieveAnnouncement", function()
     end
     local announcement = {}
     
-    PLUGIN:RetrieveAnnouncement(function(retAnnounce) 
+    PLUGIN:RetrieveSubredditAnnouncement(function(retAnnounce) 
       announcement = retAnnounce
     end)
     
     assert.are.equal(PLUGIN.config.msg_no_announcements, announcement)
   end)
+end)
+
+describe("PLUGIN:AnnouncementHasSubredditDependency", function() 
+  it("should return true if any lines contain '%subredditAnnouncement%'", function()
+
+    assert.are.equal(true, PLUGIN:AnnouncementHasSubredditDependency({"Announcement line 1", "%subredditAnnouncement% line 2"}))
+    end)
+
+  it("should return false if no lines contain '%subredditAnnouncement%'", function()
+    assert.are.equal(false, PLUGIN:AnnouncementHasSubredditDependency({"Announcement line 1", "Announcement line 2"}))
+    end)
+end)
+
+describe("PLUGIN:GetInterpolatedAnnouncement", function() 
+  it("should interpolate the subreddit announcement ", function()
+    PLUGIN.subredditAnnouncement = "This is the announcement!"
+    PLUGIN.config.announcement = { "%subredditAnnouncement%" }
+    local interpolated = PLUGIN:GetInterpolatedAnnouncement()
+    assert.are.equal("This is the announcement!", interpolated[1])
+    end)
 end)

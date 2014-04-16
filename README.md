@@ -13,6 +13,12 @@ The following is a sample configuration for madrust-announce:
       "conf" : 
       {
         "announcer" : "[ANNOUNCE]",
+        "announcement" : 
+        [
+          "%subredditAnnouncement%", 
+          "For more information and general server discussion visit the subreddit:", 
+          "http://www.reddit.com/r/madrust"
+        ],
         "msg_no_announcements" : "There are no recent announcements.",
         "subreddit" : 
         {
