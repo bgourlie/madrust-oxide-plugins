@@ -144,6 +144,7 @@ function PLUGIN:InitConfig()
   local config =  
   {
     announcer = conf.announcer,
+    announcement = conf.announcement,
     msg_no_announcements = conf.msg_no_announcements
   }
 
