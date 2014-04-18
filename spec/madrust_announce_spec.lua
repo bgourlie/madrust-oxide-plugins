@@ -459,7 +459,16 @@ describe("PLUGIN:GetInterpolatedAnnouncement", function()
   it("should interpolate the subreddit announcement ", function()
     PLUGIN.subredditAnnouncement = "This is the announcement!"
     PLUGIN.config.announcement = { "%subredditAnnouncement%" }
+    PLUGIN.GetUserCount = function(self) return 4 end
     local interpolated = PLUGIN:GetInterpolatedAnnouncement()
     assert.are.equal("This is the announcement!", interpolated[1])
     end)
+
+  it("should interpolate the user count ", function()
+    PLUGIN.subredditAnnouncement = "This is the announcement!"
+    PLUGIN.config.announcement = { "There are %userCount% online." }
+    PLUGIN.GetUserCount = function(self) return 4 end
+    local interpolated = PLUGIN:GetInterpolatedAnnouncement()
+    assert.are.equal("There are 4 online.", interpolated[1])
+  end)
 end)

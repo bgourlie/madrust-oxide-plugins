@@ -11,15 +11,17 @@ function PLUGIN:Init()
   self.subredditAnnouncement = nil
 
   self:AddChatCommand("announce", self.CmdAnnounce)
+  self:AddChatCommand("list", self.CmdList)
+  self:AddChatCommand("compass", self.CmdCompass)
+  self:AddChatCommand("help", self.CmdHelp)
 
   if self:AnnouncementHasSubredditDependency(self.config.announcement) then
     local checkfn = function()
         self:RetrieveSubredditAnnouncement(function(announcement) 
           if self.subredditAnnouncement ~= announcement then
-            self.subredditAnnouncement = announcement
-            for _, line in pairs(self:GetInterpolatedAnnouncement()) do
-              rust.BroadcastChat(self.config.announcer, line)
-            end
+            `self.subredditAnnouncement = announcement
+            rust.BroadcastChat(self.config.announcer, "A new announcement has been posted to the subreddit:")
+            rust.BroadcastChat(self.config.announcer, announcement)
           end
         end)
     end
@@ -31,6 +33,30 @@ function PLUGIN:Init()
     self.checkTimer = timer.Repeat(self.config.subreddit.check_interval, checkfn)
   end
  end
+
+function PLUGIN:GetUserTable()
+  return rust.GetAllNetUsers()
+end
+
+function PLUGIN:GetUserCount()
+  local count = 0;
+  for _,__ in pairs(self:GetUserTable()) do
+    count = count + 1
+  end
+  return count;
+end
+
+function PLUGIN:CmdList(netuser, cmd, args)
+  for _, user in pairs(self:GetUserTable()) do
+    rust.SendChatToUser(netuser, self.config.announcer, user.displayName)
+  end
+end
+
+function PLUGIN:CmdHelp(netuser, cmd, args)
+  rust.SendChatToUser(netuser, self.config.announcer, "/announce - Repeat the announcement message.")
+  rust.SendChatToUser(netuser, self.config.announcer, "/list - See who's online.")
+  rust.SendChatToUser(netuser, self.config.announcer, "/compass - See which direction you're facing.")
+end
 
 function PLUGIN:Unload()
   if self.checkTimer then self.checkTimer:Destroy() end
@@ -50,6 +76,7 @@ function PLUGIN:GetInterpolatedAnnouncement()
   local interpolated = {}
   for index, line in pairs(self.config.announcement) do
     interpolated[index] = line:gsub("%%subredditAnnouncement%%", self.subredditAnnouncement)
+    interpolated[index] = interpolated[index]:gsub("%%userCount%%", tostring(self:GetUserCount()))
   end
   return interpolated
 end
