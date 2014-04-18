@@ -10,17 +10,20 @@ The following is a sample configuration, which should reside in `oxide/data/cfg_
     {
       "conf" : 
       {
+        "announcer" : "[ANNOUNCE]",
         "announcement" : 
         [
           "%subredditAnnouncement%", 
           "Subscribe to the official server subreddit:", 
-          "www.reddit.com/r/madrust"
+          "http://www.reddit.com/r/madrust",
+          "There are %userCount% users online.  Type '/help' for available commands."
         ],
+        "msg_no_announcements" : "There are no recent announcements.",
         "subreddit" : 
         {
           "name" : "madrust",
-          "admins" : ["bgzee"], 
-          "announcement_prefix" : "[ANNOUNCEMENT]",
+          "admins" : ["bgzee"],
+		  "announcement_prefix" : "[ANNOUNCEMENT]",
           "check_interval" : 3600
         }        
       }
