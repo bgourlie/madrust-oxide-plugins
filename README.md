@@ -1,9 +1,8 @@
-madrust-oxide-plugins
-=====================
-
-### madrust-announce [![Build Status](https://travis-ci.org/bgourlie/madrust-oxide-plugins.svg?branch=master)](https://travis-ci.org/bgourlie/madrust-oxide-plugins)
+## madrust-announce [![Build Status](https://travis-ci.org/bgourlie/madrust-oxide-plugins.svg?branch=master)](https://travis-ci.org/bgourlie/madrust-oxide-plugins)
 
 madrust-announce is an oxide plugin that will display a configurable message whenever a user enters the game.  The most notable feature is the ability to extract announcements from a specified subreddit.
+
+### Configuration
 
 The following is a sample configuration, which should reside in `oxide/data/cfg_madrust_announce.txt`:
 
@@ -25,7 +24,7 @@ The following is a sample configuration, which should reside in `oxide/data/cfg_
       }
     }
 
-The following is an explanation of all the available settings:
+#### Required Settings
 
 - **announcement**: An array of lines that are displayed whenever a user connects.  The following variables can be used:
   - `%subredditAnnouncement%` - Displays the most recent announcement from the configured subreddit.
