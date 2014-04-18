@@ -19,7 +19,7 @@ function PLUGIN:Init()
     local checkfn = function()
         self:RetrieveSubredditAnnouncement(function(announcement) 
           if self.subredditAnnouncement ~= announcement then
-            `self.subredditAnnouncement = announcement
+            self.subredditAnnouncement = announcement
             rust.BroadcastChat(self.config.announcer, "A new announcement has been posted to the subreddit:")
             rust.BroadcastChat(self.config.announcer, announcement)
           end
@@ -33,6 +33,62 @@ function PLUGIN:Init()
     self.checkTimer = timer.Repeat(self.config.subreddit.check_interval, checkfn)
   end
  end
+
+function PLUGIN:CmdCompass(netuser, cmd, args)
+  -- most of this taken from an oxide example at http://wiki.rustoxide.com/Snippets
+  local controllable = netuser.playerClient.controllable
+  local char = controllable:GetComponent( "Character" )
+
+  local forward = char.forward -- This should be a forward vector.
+  local pitch = char.eyesPitch -- You can use angles if you'd prefer
+  local yaw = char.eyesYaw -- You can use angles if you'd prefer
+
+  -- Convert unit circle angle to compass angle.
+  -- Known error: char.eyesYaw randomly returns a String value and breaks output
+  local degrees = (yaw+90)%360
+
+  local direction = self:GetDirectionString(degrees)
+
+  rust.SendChatToUser(netuser, self.config.announcer, "You are facing " .. direction)
+end
+
+function PLUGIN:GetDirectionString(degrees)
+  -- see http://en.wikipedia.org/wiki/Points_of_the_compass
+  if (degrees >= 354.38 and degrees <= 360) or degrees <= 5.62 then return "north [N]" end
+  if degrees >= 5.63 and degrees <= 16.87 then return "north by east [NbE]" end
+  if degrees >= 16.88 and degrees <= 28.12 then return "north-northeast [NNE]" end
+  if degrees >= 28.13 and degrees <= 39.37 then return "northeast by north [NEbN]" end
+  if degrees >= 39.38 and degrees <= 39.37 then return "northeast [NE]" end 
+  if degrees >= 50.63 and degrees <= 61.87 then return "northeast by east [NEbE]" end
+  if degrees >= 61.88 and degrees <= 73.12 then return "east-northeast [ENE]" end
+  if degrees >= 73.13 and degrees <= 84.37 then return "east by north [EbN]" end
+  if degrees >= 84.38 and degrees <= 95.62 then return "east [E]" end
+  if degrees >= 95.63 and degrees <= 106.87 then return "east by south [EbS]" end 
+  if degrees >= 106.88 and degrees <= 118.12 then return "east-southeast [ESE]" end
+  if degrees >= 118.13 and degrees <= 129.37 then return "southeast by east [SEbE]" end
+  if degrees >= 129.38 and degrees <= 140.62 then return "southeast [SE]" end
+  if degrees >= 140.63 and degrees <= 151.87 then return "southeast by south [SEbS]" end
+  if degrees >= 151.88 and degrees <= 163.12 then return "south-southeast [SSE]" end
+  if degrees >= 163.13 and degrees <= 174.37 then return "south by east [SbE]" end
+  if degrees >= 174.38 and degrees <= 185.62 then return "south [S]" end 
+  if degrees >= 185.63 and degrees <= 196.87 then return "south by west [SbW]" end 
+  if degrees >= 196.88 and degrees <= 208.12 then return "south-southwest [SSW]" end
+  if degrees >= 208.13 and degrees <= 219.37 then return "southwest by south [SWbS]" end
+  if degrees >= 219.38 and degrees <= 230.62 then return "southwest [SW]" end 
+  if degrees >= 230.63 and degrees <= 241.87 then return "southwest by west [SWbW]" end
+  if degrees >= 241.88 and degrees <= 253.12 then return "west-southwest [WSW]" end
+  if degrees >= 253.13 and degrees <= 264.37 then return "west by south [WbS]" end
+  if degrees >= 264.38 and degrees <= 275.62 then return "west [W]" end
+  if degrees >= 275.63 and degrees <= 286.87 then return "west by north [WbN]" end
+  if degrees >= 286.88 and degrees <= 298.12 then return "west-northwest [WNW]" end
+  if degrees >= 298.13 and degrees <= 309.37 then return "northwest by west [NWbW]" end
+  if degrees >= 309.38 and degrees <= 320.62 then return "northwest [NW]" end
+  if degrees >= 320.63 and degrees <= 331.87 then return "northwest by north [NWbN]" end
+  if degrees >= 331.88 and degrees <= 343.12 then return "north-northwest [NNW]" end
+  if degrees >= 343.13 and degrees <= 354.37 then return "north by west [NbW]" end
+
+  return "[Unable to determine direction]"
+end
 
 function PLUGIN:GetUserTable()
   return rust.GetAllNetUsers()
