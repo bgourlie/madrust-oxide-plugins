@@ -27,7 +27,9 @@ The following is a sample configuration, which should reside in `oxide/data/cfg_
 
 The following is an explanation of all the available settings:
 
-- **announcement**: An array of lines that are displayed whenever a user connects.  The `%subredditAnnouncement%` variable can be used to display the most recent announcement from the configured subreddit.
+- **announcement**: An array of lines that are displayed whenever a user connects.  The following variables can be used:
+  - `%subredditAnnouncement%` - Displays the most recent announcement from the configured subreddit.
+  - `%userCount%` - Displays the number of connected users.
 - **subreddit**: This section is used for pulling in the most recent announcement from a subreddit.  It's only required if using the `%subredditAnnouncement%` variable.
   - **name**: The name of the subreddit.  If the url for your subreddit is `www.reddit.com/r/ilikecake`, then the name of your subreddit is `ilikecake`.
   - **admins**:  The users whose posts will be considered for announcements.  These users do not actually have to be admins of the subreddit.
