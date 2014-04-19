@@ -20,8 +20,6 @@ function PLUGIN:Init()
         self:RetrieveSubredditAnnouncement(function(announcement) 
           if self.subredditAnnouncement ~= announcement then
             self.subredditAnnouncement = announcement
-            rust.BroadcastChat(self.config.announcer, "A new announcement has been posted to the subreddit:")
-            rust.BroadcastChat(self.config.announcer, announcement)
           end
         end)
     end
