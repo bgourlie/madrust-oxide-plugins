@@ -11,9 +11,15 @@ function PLUGIN:Init()
   self.subredditAnnouncement = nil
 
   self:AddChatCommand("announce", self.CmdAnnounce)
-  self:AddChatCommand("list", self.CmdList)
+  self:AddChatCommand("a", self.CmdAnnounce)
   self:AddChatCommand("compass", self.CmdCompass)
+  self:AddChatCommand("c", self.CmdCompass)
+  self:AddChatCommand("list", self.CmdList)
+  self:AddChatCommand("l", self.CmdList)
+  self:AddChatCommand("whisper", self.CmdWhisper)
+  self:AddChatCommand("w", self.CmdWhisper)
   self:AddChatCommand("help", self.CmdHelp)
+  self:AddChatCommand("h", self.CmdHelp)
 
   if self:AnnouncementHasSubredditDependency(self.config.announcement) then
     local checkfn = function()
@@ -92,12 +98,44 @@ function PLUGIN:GetUserTable()
   return rust.GetAllNetUsers()
 end
 
+function PLUGIN:GetUsersStartingWith(user)
+  local len = user:len()
+  local i = 1
+  local matches = {}
+  for _,u in pairs(self:GetUserTable()) do
+    if u.displayName:lower():sub(1, len) == user:lower() then 
+      matches[i] = u
+      i = i + 1
+    end
+  end
+  return matches;
+end
+
 function PLUGIN:GetUserCount()
   local count = 0;
   for _,__ in pairs(self:GetUserTable()) do
     count = count + 1
   end
   return count;
+end
+
+function PLUGIN:CmdWhisper(netuser, cmd, args)
+  local targetUser = args[1]
+  local message = args[2]
+  if not targetUser or not message then return end
+  local users = self:GetUsersStartingWith(targetUser)
+  local userCount = self:GetTableCount(users)
+  if userCount == 0 then 
+    rust.SendChatToUser(netuser, self.config.announcer, string.format("No user with name like %q is logged on.", targetUser))
+    return 
+  end
+
+  if userCount > 1 then 
+    rust.SendChatToUser(netuser, self.config.announcer, string.format("More than one user has a name like %q.", targetUser))
+    return 
+  end
+
+  rust.SendChatToUser(targetUser[1], netuser.displayName .. " (whisper)", message)
 end
 
 function PLUGIN:CmdList(netuser, cmd, args)
@@ -107,9 +145,10 @@ function PLUGIN:CmdList(netuser, cmd, args)
 end
 
 function PLUGIN:CmdHelp(netuser, cmd, args)
-  rust.SendChatToUser(netuser, self.config.announcer, "/announce - Repeat the announcement message.")
-  rust.SendChatToUser(netuser, self.config.announcer, "/list - See who's online.")
-  rust.SendChatToUser(netuser, self.config.announcer, "/compass - See which direction you're facing.")
+  rust.SendChatToUser(netuser, self.config.announcer, "/announce or /a - Repeat the announcement message.")
+  rust.SendChatToUser(netuser, self.config.announcer, "/list or /l - See who's online.")
+  rust.SendChatToUser(netuser, self.config.announcer, "/compass or /c - See which direction you're facing.")
+  rust.SendChatToUser(netuser, self.config.announcer, "/whisper or /w [user] [message] - Send a message to a user that only they can see.")
 end
 
 function PLUGIN:Unload()
@@ -311,3 +350,13 @@ function PLUGIN:LoadConfigIntoTable()
   
   return _conf.conf  
 end
+
+function PLUGIN:GetTableCount(table)
+  if type(table) ~= "table" then return 0 end
+  local count = 0
+  for _,__ in pairs(table) do
+    count = count + 1
+  end
+  return count
+end
+

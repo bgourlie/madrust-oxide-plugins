@@ -444,7 +444,7 @@ describe("RetrieveSubredditAnnouncement", function()
   end)
 end)
 
-describe("PLUGIN:AnnouncementHasSubredditDependency", function() 
+describe("AnnouncementHasSubredditDependency", function() 
   it("should return true if any lines contain '%subredditAnnouncement%'", function()
 
     assert.are.equal(true, PLUGIN:AnnouncementHasSubredditDependency({"Announcement line 1", "%subredditAnnouncement% line 2"}))
@@ -470,5 +470,58 @@ describe("PLUGIN:GetInterpolatedAnnouncement", function()
     PLUGIN.GetUserCount = function(self) return 4 end
     local interpolated = PLUGIN:GetInterpolatedAnnouncement()
     assert.are.equal("There are 4 online.", interpolated[1])
+  end)
+end)
+
+describe("GetUsersStartingWith", function()
+  it("should return an exact match", function()
+    PLUGIN.GetUserTable = function(self)
+      local ret = {}
+      ret[1] = {}
+      ret[1].displayName = "bgzee"
+      return ret
+    end
+
+    local result = PLUGIN:GetUsersStartingWith("bgzee")
+    assert.are.equal("bgzee", result[1].displayName)
+  end)
+
+  it("should return even if case doesn't match", function()
+    PLUGIN.GetUserTable = function(self)
+      local ret = {}
+      ret[1] = {}
+      ret[1].displayName = "bgzEE"
+      return ret
+    end
+
+    local result = PLUGIN:GetUsersStartingWith("bgzee")
+    assert.are.equal("bgzEE", result[1].displayName)
+  end)
+
+  it("should all possible matches", function()
+    PLUGIN.GetUserTable = function(self)
+      local ret = {}
+      ret[1] = {}
+      ret[1].displayName = "bgzEE"
+
+      ret[2] = {}
+      ret[2].displayName = "bgzEEfosheezy"
+
+      ret[3] = {}
+      ret[3].displayName = "george"
+      return ret
+    end
+
+    local result = PLUGIN:GetUsersStartingWith("bgzee")
+    assert.are.equal("bgzEE", result[1].displayName)
+    assert.are.equal("bgzEEfosheezy", result[2].displayName)
+  end)
+end)
+
+describe("GetTableCount", function()
+  it("smoke test", function()
+    local table = { "one", "two", "three" }
+    local result = PLUGIN:GetTableCount(table)
+    assert.are.equal(3, result)
   end)
 end)
