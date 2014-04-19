@@ -126,7 +126,7 @@ function PLUGIN:CmdWhisper(netuser, cmd, args)
   local users = self:GetUsersStartingWith(targetUser)
   local userCount = self:GetTableCount(users)
   if userCount == 0 then 
-    rust.SendChatToUser(netuser, self.config.announcer, string.format("No user with name like %q is logged on.", targetUser))
+    rust.SendChatToUser(netuser, self.config.announcer, string.format("No user with a name like %q is logged on.", targetUser))
     return 
   end
 
