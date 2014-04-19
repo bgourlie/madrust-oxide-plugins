@@ -136,6 +136,7 @@ function PLUGIN:CmdWhisper(netuser, cmd, args)
   end
   
   rust.SendChatToUser(users[1], netuser.displayName .. " (whisper)", message)
+  rust.SendChatToUser(netuser, netuser.displayName .. string.format(" (to %s)", targetUser), message)
 end
 
 function PLUGIN:CmdList(netuser, cmd, args)
