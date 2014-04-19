@@ -134,8 +134,8 @@ function PLUGIN:CmdWhisper(netuser, cmd, args)
     rust.SendChatToUser(netuser, self.config.announcer, string.format("More than one user has a name like %q.", targetUser))
     return 
   end
-
-  rust.SendChatToUser(targetUser[1], netuser.displayName .. " (whisper)", message)
+  
+  rust.SendChatToUser(users[1], netuser.displayName .. " (whisper)", message)
 end
 
 function PLUGIN:CmdList(netuser, cmd, args)
