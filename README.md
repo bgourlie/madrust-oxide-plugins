@@ -35,3 +35,11 @@ The following is a sample configuration, which should reside in `oxide/data/cfg_
   - **announcement_prefix**:  The text that announcements are prefixed with when posted to the subreddit.
   - **check_interval**: The number of seconds to wait before checking if any new announcements have been posted to the subreddit.
   
+## madrust-stats
+
+### Sample Configuration
+    {
+	  "DbName" : "madrust-stats",
+	  "DbUser" : "someuser",
+	  "DbPassword" : "asdf1234"
+    }
