@@ -121,8 +121,15 @@ end
 
 function PLUGIN:CmdWhisper(netuser, cmd, args)
   local targetUser = args[1]
-  local message = args[2]
-  if not targetUser or not message then return end
+  if not targetUser or not args[2] then return end
+  local message = ""
+
+  for i, str in pairs(args) do
+    if i > 1 then
+      message = message .. str .. " "
+    end
+  end
+
   local users = self:GetUsersStartingWith(targetUser)
   local userCount = self:GetTableCount(users)
   if userCount == 0 then 
@@ -136,7 +143,7 @@ function PLUGIN:CmdWhisper(netuser, cmd, args)
   end
   
   rust.SendChatToUser(users[1], netuser.displayName .. " (whisper)", message)
-  rust.SendChatToUser(netuser, netuser.displayName .. string.format(" (to %s)", targetUser), message)
+  rust.SendChatToUser(netuser, netuser.displayName .. string.format(" (to %s)", users[1].displayName), message)
 end
 
 function PLUGIN:CmdList(netuser, cmd, args)
@@ -360,4 +367,3 @@ function PLUGIN:GetTableCount(table)
   end
   return count
 end
-
