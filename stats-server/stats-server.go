@@ -17,7 +17,7 @@ func main() {
 	g_conf = ReadConfig()
 	gorest.RegisterService(new(StatsService))
 	http.Handle("/", gorest.Handle())
-	http.ListenAndServe(":8787", nil)
+	http.ListenAndServe(fmt.Sprintf(":%v", g_conf.HttpPort), nil)
 }
 
 //************************Define Service***************************
@@ -42,6 +42,7 @@ type Config struct {
 	DbName     string
 	DbUser     string
 	DbPassword string
+	HttpPort   int
 }
 
 //Handler Methods: Method names must be the same as in config, but exported (starts with uppercase)

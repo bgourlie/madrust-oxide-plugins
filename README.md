@@ -41,5 +41,6 @@ The following is a sample configuration, which should reside in `oxide/data/cfg_
     {
 	  "DbName" : "madrust-stats",
 	  "DbUser" : "someuser",
-	  "DbPassword" : "asdf1234"
+	  "DbPassword" : "asdf1234",
+	  "HttpPort" : 8787
     }
