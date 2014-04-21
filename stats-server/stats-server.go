@@ -75,9 +75,10 @@ func (serv StatsService) PutUser(user User, id int64) {
 	if err != nil {
 		log.Print(err)
 		serv.ResponseBuilder().SetResponseCode(500).Overide(true)
-	} else {
-		serv.ResponseBuilder().SetResponseCode(201).Overide(true)
+		return
 	}
+
+	serv.ResponseBuilder().SetResponseCode(201).Overide(true)
 }
 
 func OpenDatabase() (db *sql.DB) {
