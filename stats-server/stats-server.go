@@ -67,6 +67,12 @@ func (serv StatsService) GetUser(id int64) User {
 }
 
 func (serv StatsService) PutUser(user User, id int64) {
+
+	if user.SteamId != id {
+		serv.ResponseBuilder().SetResponseCode(400).Overide(true)
+		return
+	}
+
 	db := OpenDatabase()
 	defer db.Close()
 
