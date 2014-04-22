@@ -11,13 +11,21 @@ import (
 	"os"
 )
 
-var g_conf Config
+var g_db *sql.DB
 
 func main() {
-	g_conf = ReadConfig()
+	conf := ReadConfig()
+
+	var err error
+	g_db, err = sql.Open("postgres", fmt.Sprintf("user=%v password=%v dbname=%v sslmode=disable", conf.DbUser, conf.DbPassword, conf.DbName))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	gorest.RegisterService(new(StatsService))
 	http.Handle("/", gorest.Handle())
-	http.ListenAndServe(fmt.Sprintf(":%v", g_conf.HttpPort), nil)
+	http.ListenAndServe(fmt.Sprintf(":%v", conf.HttpPort), nil)
 }
 
 //************************Define Service***************************
@@ -34,8 +42,8 @@ type StatsService struct {
 }
 
 type User struct {
-	SteamId     int64
-	DisplayName string
+	Id   int64
+	Name string
 }
 
 type Config struct {
@@ -48,13 +56,11 @@ type Config struct {
 //Handler Methods: Method names must be the same as in config, but exported (starts with uppercase)
 
 func (serv StatsService) GetUser(id int64) User {
-	db := OpenDatabase()
-	defer db.Close()
 
 	var steamid int64
 	var username string
 
-	err := db.QueryRow("SELECT steamid, displayName FROM users WHERE steamid = $1", id).Scan(&steamid, &username)
+	err := g_db.QueryRow("SELECT id, name FROM players WHERE id = $1", id).Scan(&steamid, &username)
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -63,20 +69,17 @@ func (serv StatsService) GetUser(id int64) User {
 		log.Fatal(err)
 	}
 
-	return User{SteamId: steamid, DisplayName: username}
+	return User{Id: steamid, Name: username}
 }
 
 func (serv StatsService) PutUser(user User, id int64) {
 
-	if user.SteamId != id {
+	if user.Id != id {
 		serv.ResponseBuilder().SetResponseCode(400).Overide(true)
 		return
 	}
 
-	db := OpenDatabase()
-	defer db.Close()
-
-	_, err := db.Exec("INSERT INTO users (steamid, displayname) VALUES ($1, $2)", user.SteamId, user.DisplayName)
+	_, err := g_db.Exec("INSERT INTO players (id, name) VALUES ($1, $2)", user.Id, user.Name)
 
 	if err != nil {
 		log.Print(err)
@@ -85,17 +88,6 @@ func (serv StatsService) PutUser(user User, id int64) {
 	}
 
 	serv.ResponseBuilder().SetResponseCode(201).Overide(true)
-}
-
-func OpenDatabase() (db *sql.DB) {
-	var err error
-	db, err = sql.Open("postgres", fmt.Sprintf("user=%v password=%v dbname=%v sslmode=disable", g_conf.DbUser, g_conf.DbPassword, g_conf.DbName))
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return
 }
 
 func ReadConfig() (config Config) {
