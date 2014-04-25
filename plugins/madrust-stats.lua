@@ -15,11 +15,6 @@ function PLUGIN:Init()
   -- damage_bullet : damage_bullet: 2
   -- damage_cold : damage_cold: 32
   typesystem.LoadEnum( Rust.DamageTypeFlags, "DamageType" )
-
-  for x,y in pairs(DamageType) do
-  	print(tostring(x) .. " : " .. tostring(y))
-  end
-
 end
 
 function PLUGIN:OnKilled(takeDamage, damageEvent)
