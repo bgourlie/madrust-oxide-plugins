@@ -42,6 +42,10 @@ function PLUGIN:AnnounceToUser(netuser, text)
   rust.SendChatToUser(netuser, self.config.announcer, "[color #66FF00]" .. text)
 end
 
+function PLUGIN:AnnounceBroadcast(text)
+  rust.BroadcastChat(self.config.announcer, "[color #66FF00]" .. text)
+end
+
 function PLUGIN:CmdCompass(netuser, cmd, args)
   -- most of this taken from an oxide example at http://wiki.rustoxide.com/Snippets
   local controllable = netuser.playerClient.controllable
@@ -169,6 +173,15 @@ end
 
 function PLUGIN:OnUserConnect(netuser)
   self:CmdAnnounce(netuser)
+  self:AnnounceBroadcast(netuser.displayName .. " has joined the game.")
+end
+
+function PLUGIN:OnUserDisconnect(networkplayer)
+    local netuser = networkplayer:GetLocalData()
+    if (not netuser or netuser:GetType().Name ~= "NetUser") then
+      return
+    end
+    self:AnnounceBroadcast(netuser.displayName .. " has left the game.")
 end
 
 function PLUGIN:CmdAnnounce(netuser, cmd, args)
