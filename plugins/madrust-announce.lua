@@ -38,6 +38,10 @@ function PLUGIN:Init()
   end
  end
 
+function PLUGIN:AnnounceToUser(netuser, text)
+  rust.SendChatToUser(netuser, self.config.announcer, "[color #66FF00]" .. text)
+end
+
 function PLUGIN:CmdCompass(netuser, cmd, args)
   -- most of this taken from an oxide example at http://wiki.rustoxide.com/Snippets
   local controllable = netuser.playerClient.controllable
@@ -53,7 +57,7 @@ function PLUGIN:CmdCompass(netuser, cmd, args)
 
   local direction = self:GetDirectionString(degrees)
 
-  rust.SendChatToUser(netuser, self.config.announcer, "You are facing " .. direction)
+  self:AnnounceToUser(netuser, "You are facing " .. direction)
 end
 
 function PLUGIN:GetDirectionString(degrees)
@@ -133,12 +137,12 @@ function PLUGIN:CmdWhisper(netuser, cmd, args)
   local users = self:GetUsersStartingWith(targetUser)
   local userCount = self:GetTableCount(users)
   if userCount == 0 then 
-    rust.SendChatToUser(netuser, self.config.announcer, string.format("No user with a name like %q is logged on.", targetUser))
+    self:AnnounceToUser(netuser, string.format("No user with a name like %q is logged on.", targetUser))
     return 
   end
 
   if userCount > 1 then 
-    rust.SendChatToUser(netuser, self.config.announcer, string.format("More than one user has a name like %q.", targetUser))
+    self:AnnounceToUser(netuser, string.format("More than one user has a name like %q.", targetUser))
     return 
   end
   
@@ -148,15 +152,15 @@ end
 
 function PLUGIN:CmdList(netuser, cmd, args)
   for _, user in pairs(self:GetUserTable()) do
-    rust.SendChatToUser(netuser, self.config.announcer, user.displayName)
+    self:AnnounceToUser(netuser, user.displayName)
   end
 end
 
 function PLUGIN:CmdHelp(netuser, cmd, args)
-  rust.SendChatToUser(netuser, self.config.announcer, "/announce or /a - Repeat the announcement message.")
-  rust.SendChatToUser(netuser, self.config.announcer, "/list or /l - See who's online.")
-  rust.SendChatToUser(netuser, self.config.announcer, "/compass or /c - See which direction you're facing.")
-  rust.SendChatToUser(netuser, self.config.announcer, "/whisper or /w [user] [message] - Send a message to a user that only they can see.")
+  self:AnnounceToUser(netuser, "/announce or /a - Repeat the announcement message.")
+  self:AnnounceToUser(netuser, "/list or /l - See who's online.")
+  self:AnnounceToUser(netuser, "/compass or /c - See which direction you're facing.")
+  self:AnnounceToUser(netuser, "/whisper or /w [user] [message] - Send a message to a user that only they can see.")
 end
 
 function PLUGIN:Unload()
@@ -169,7 +173,7 @@ end
 
 function PLUGIN:CmdAnnounce(netuser, cmd, args)
   for _, line in pairs(self:GetInterpolatedAnnouncement()) do
-    rust.SendChatToUser(netuser, self.config.announcer, line)
+    self:AnnounceToUser(netuser, line)
   end
 end
 
