@@ -32,9 +32,10 @@ SET default_with_oids = false;
 --
 
 CREATE TABLE deaths (
-    playerid bigint,
-    "time" timestamp with time zone,
-    id integer NOT NULL
+    player_id bigint NOT NULL,
+    "time" timestamp with time zone NOT NULL,
+    instance_id uuid NOT NULL,
+    id uuid NOT NULL
 );
 
 
@@ -43,6 +44,8 @@ CREATE TABLE deaths (
 --
 
 CREATE TABLE deaths_pve (
+    id uuid NOT NULL,
+    killer_name character varying(26) NOT NULL
 );
 
 
@@ -52,7 +55,7 @@ CREATE TABLE deaths_pve (
 
 CREATE TABLE deaths_pvp (
     killerid bigint,
-    id integer NOT NULL
+    id uuid NOT NULL
 );
 
 
@@ -61,7 +64,9 @@ CREATE TABLE deaths_pvp (
 --
 
 CREATE TABLE instances (
-    instanceid character varying(26) NOT NULL
+    id uuid NOT NULL,
+    url_id character varying NOT NULL,
+    server_id uuid NOT NULL
 );
 
 
@@ -81,8 +86,8 @@ CREATE TABLE players (
 
 CREATE TABLE servers (
     name character varying(100),
-    id character varying(26) NOT NULL,
-    secretkey uuid NOT NULL
+    url_id character varying(26) NOT NULL,
+    id uuid NOT NULL
 );
 
 
@@ -95,11 +100,27 @@ ALTER TABLE ONLY deaths
 
 
 --
+-- Name: deaths_pve_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY deaths_pve
+    ADD CONSTRAINT deaths_pve_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: deaths_pvp_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY deaths_pvp
     ADD CONSTRAINT deaths_pvp_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: instances_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY instances
+    ADD CONSTRAINT instances_pkey PRIMARY KEY (id);
 
 
 --
@@ -119,17 +140,46 @@ ALTER TABLE ONLY servers
 
 
 --
--- Name: playerid_fkey; Type: INDEX; Schema: public; Owner: -
+-- Name: deaths_instances_fk; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX playerid_fkey ON deaths USING btree (playerid);
+CREATE INDEX deaths_instances_fk ON deaths USING btree (instance_id);
 
 
 --
--- Name: servers_secretkey_idx; Type: INDEX; Schema: public; Owner: -
+-- Name: deaths_players_fkey; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX servers_secretkey_idx ON servers USING btree (secretkey);
+CREATE INDEX deaths_players_fkey ON deaths USING btree (player_id);
+
+
+--
+-- Name: instances_servers_fk; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX instances_servers_fk ON instances USING btree (server_id);
+
+
+--
+-- Name: instances_url_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX instances_url_id_idx ON instances USING btree (url_id);
+
+
+--
+-- Name: servers_url_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX servers_url_id_idx ON servers USING btree (url_id);
+
+
+--
+-- Name: deaths_instance_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY deaths
+    ADD CONSTRAINT deaths_instance_id_fkey FOREIGN KEY (instance_id) REFERENCES instances(id);
 
 
 --
@@ -137,7 +187,15 @@ CREATE UNIQUE INDEX servers_secretkey_idx ON servers USING btree (secretkey);
 --
 
 ALTER TABLE ONLY deaths
-    ADD CONSTRAINT deaths_playerid_fkey FOREIGN KEY (playerid) REFERENCES players(id);
+    ADD CONSTRAINT deaths_playerid_fkey FOREIGN KEY (player_id) REFERENCES players(id);
+
+
+--
+-- Name: deaths_pve_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY deaths_pve
+    ADD CONSTRAINT deaths_pve_id_fkey FOREIGN KEY (id) REFERENCES deaths(id);
 
 
 --
@@ -146,6 +204,14 @@ ALTER TABLE ONLY deaths
 
 ALTER TABLE ONLY deaths_pvp
     ADD CONSTRAINT deaths_pvp_id_fkey FOREIGN KEY (id) REFERENCES deaths(id);
+
+
+--
+-- Name: instances_server_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY instances
+    ADD CONSTRAINT instances_server_id_fkey FOREIGN KEY (server_id) REFERENCES servers(id);
 
 
 --
