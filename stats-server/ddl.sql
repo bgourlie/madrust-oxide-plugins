@@ -80,8 +80,8 @@ CREATE TABLE players (
 --
 
 CREATE TABLE servers (
-    servername character varying(100),
-    serverid character varying(26) NOT NULL,
+    name character varying(100),
+    id character varying(26) NOT NULL,
     secretkey uuid NOT NULL
 );
 
@@ -115,7 +115,7 @@ ALTER TABLE ONLY players
 --
 
 ALTER TABLE ONLY servers
-    ADD CONSTRAINT servers_pkey PRIMARY KEY (serverid);
+    ADD CONSTRAINT servers_pkey PRIMARY KEY (id);
 
 
 --
