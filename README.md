@@ -44,3 +44,7 @@ The following is a sample configuration, which should reside in `oxide/data/cfg_
 	  "DbPassword" : "asdf1234",
 	  "HttpPort" : 8787
     }
+
+### Developer Notes
+
+Use `pg_dump` to generate ddl scripts when making schema changes: `pg_dump -f ddl.sql -O -s -x -U postgres --no-tablespaces --no-security-labels madrust-stats`.

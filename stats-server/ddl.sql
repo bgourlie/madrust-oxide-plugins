@@ -9,47 +9,15 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 
-SET search_path = public, pg_catalog;
-
-ALTER TABLE ONLY public.deaths_pvp DROP CONSTRAINT deaths_pvp_id_fkey;
-ALTER TABLE ONLY public.deaths DROP CONSTRAINT deaths_playerid_fkey;
-DROP INDEX public.playerid_fkey;
-ALTER TABLE ONLY public.servers DROP CONSTRAINT servers_pkey;
-ALTER TABLE ONLY public.players DROP CONSTRAINT players_pkey;
-ALTER TABLE ONLY public.deaths_pvp DROP CONSTRAINT deaths_pvp_pkey;
-ALTER TABLE ONLY public.deaths DROP CONSTRAINT deaths_pkey;
-DROP TABLE public.servers;
-DROP TABLE public.players;
-DROP TABLE public.deaths_pvp;
-DROP TABLE public.deaths_pve;
-DROP TABLE public.deaths;
-DROP EXTENSION plpgsql;
-DROP SCHEMA public;
 --
--- Name: public; Type: SCHEMA; Schema: -; Owner: brian
---
-
-CREATE SCHEMA public;
-
-
-ALTER SCHEMA public OWNER TO brian;
-
---
--- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: brian
---
-
-COMMENT ON SCHEMA public IS 'standard public schema';
-
-
---
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
 --
 
 CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
 --
 
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
@@ -57,12 +25,10 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 SET search_path = public, pg_catalog;
 
-SET default_tablespace = '';
-
 SET default_with_oids = false;
 
 --
--- Name: deaths; Type: TABLE; Schema: public; Owner: brian; Tablespace: 
+-- Name: deaths; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE deaths (
@@ -72,20 +38,16 @@ CREATE TABLE deaths (
 );
 
 
-ALTER TABLE public.deaths OWNER TO brian;
-
 --
--- Name: deaths_pve; Type: TABLE; Schema: public; Owner: brian; Tablespace: 
+-- Name: deaths_pve; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE deaths_pve (
 );
 
 
-ALTER TABLE public.deaths_pve OWNER TO brian;
-
 --
--- Name: deaths_pvp; Type: TABLE; Schema: public; Owner: brian; Tablespace: 
+-- Name: deaths_pvp; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE deaths_pvp (
@@ -94,10 +56,17 @@ CREATE TABLE deaths_pvp (
 );
 
 
-ALTER TABLE public.deaths_pvp OWNER TO brian;
+--
+-- Name: instances; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE instances (
+    instanceid character varying(26) NOT NULL
+);
+
 
 --
--- Name: players; Type: TABLE; Schema: public; Owner: brian; Tablespace: 
+-- Name: players; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE players (
@@ -106,22 +75,18 @@ CREATE TABLE players (
 );
 
 
-ALTER TABLE public.players OWNER TO brian;
-
 --
--- Name: servers; Type: TABLE; Schema: public; Owner: brian; Tablespace: 
+-- Name: servers; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE servers (
-    serverid uuid NOT NULL,
-    servername character varying(100)
+    servername character varying(100),
+    serverid character varying(26) NOT NULL
 );
 
 
-ALTER TABLE public.servers OWNER TO brian;
-
 --
--- Name: deaths_pkey; Type: CONSTRAINT; Schema: public; Owner: brian; Tablespace: 
+-- Name: deaths_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY deaths
@@ -129,7 +94,7 @@ ALTER TABLE ONLY deaths
 
 
 --
--- Name: deaths_pvp_pkey; Type: CONSTRAINT; Schema: public; Owner: brian; Tablespace: 
+-- Name: deaths_pvp_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY deaths_pvp
@@ -137,7 +102,7 @@ ALTER TABLE ONLY deaths_pvp
 
 
 --
--- Name: players_pkey; Type: CONSTRAINT; Schema: public; Owner: brian; Tablespace: 
+-- Name: players_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY players
@@ -145,7 +110,7 @@ ALTER TABLE ONLY players
 
 
 --
--- Name: servers_pkey; Type: CONSTRAINT; Schema: public; Owner: brian; Tablespace: 
+-- Name: servers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY servers
@@ -153,14 +118,14 @@ ALTER TABLE ONLY servers
 
 
 --
--- Name: playerid_fkey; Type: INDEX; Schema: public; Owner: brian; Tablespace: 
+-- Name: playerid_fkey; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX playerid_fkey ON deaths USING btree (playerid);
 
 
 --
--- Name: deaths_playerid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: brian
+-- Name: deaths_playerid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY deaths
@@ -168,21 +133,11 @@ ALTER TABLE ONLY deaths
 
 
 --
--- Name: deaths_pvp_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: brian
+-- Name: deaths_pvp_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY deaths_pvp
     ADD CONSTRAINT deaths_pvp_id_fkey FOREIGN KEY (id) REFERENCES deaths(id);
-
-
---
--- Name: public; Type: ACL; Schema: -; Owner: brian
---
-
-REVOKE ALL ON SCHEMA public FROM PUBLIC;
-REVOKE ALL ON SCHEMA public FROM brian;
-GRANT ALL ON SCHEMA public TO brian;
-GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
 --
