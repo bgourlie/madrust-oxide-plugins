@@ -1,6 +1,7 @@
 package main
 
 import (
+	uuid "code.google.com/p/go-uuid/uuid"
 	"code.google.com/p/gorest"
 	"database/sql"
 	"encoding/json"
@@ -23,25 +24,31 @@ func main() {
 		log.Fatal(err)
 	}
 
-	gorest.RegisterService(new(StatsService))
+	gorest.RegisterService(new(PlayersService))
 	http.Handle("/", gorest.Handle())
 	http.ListenAndServe(fmt.Sprintf(":%v", conf.HttpPort), nil)
 }
 
-//************************Define Service***************************
+type ServersService struct {
+	gorest.RestService `root:"/s" consumes:"application/json" produces:"application/json"`
 
-type StatsService struct {
-	//Service level config
-	gorest.RestService `root:"/" consumes:"application/json" produces:"application/json"`
-
-	//End-Point level configs: Field names must be the same as the corresponding method names,
-	// but not-exported (starts with lowercase)
-
-	getUser gorest.EndPoint `method:"GET" path:"/users/{id:int64}" output:"User"`
-	putUser gorest.EndPoint `method:"PUT" path:"/users/{id:int64}" postdata:"User"`
+	putUser gorest.EndPoint `method:"PUT" path:"/{id:string}" postdata:"Server" output:"Server"`
 }
 
-type User struct {
+type PlayersService struct {
+	gorest.RestService `root:"/p" consumes:"application/json" produces:"application/json"`
+
+	getUser gorest.EndPoint `method:"GET" path:"/{id:int64}" output:"Player"`
+	putUser gorest.EndPoint `method:"PUT" path:"/{id:int64}" postdata:"Player"`
+}
+
+type Server struct {
+	Id        string
+	Name      string
+	SecretKey uuid.UUID
+}
+
+type Player struct {
 	Id   int64
 	Name string
 }
@@ -55,7 +62,7 @@ type Config struct {
 
 //Handler Methods: Method names must be the same as in config, but exported (starts with uppercase)
 
-func (serv StatsService) GetUser(id int64) User {
+func (serv PlayersService) GetUser(id int64) Player {
 
 	var steamid int64
 	var username string
@@ -69,10 +76,10 @@ func (serv StatsService) GetUser(id int64) User {
 		log.Fatal(err)
 	}
 
-	return User{Id: steamid, Name: username}
+	return Player{Id: steamid, Name: username}
 }
 
-func (serv StatsService) PutUser(user User, id int64) {
+func (serv PlayersService) PutUser(user Player, id int64) {
 
 	if user.Id != id {
 		serv.ResponseBuilder().SetResponseCode(400).Overide(true)
