@@ -81,7 +81,8 @@ CREATE TABLE players (
 
 CREATE TABLE servers (
     servername character varying(100),
-    serverid character varying(26) NOT NULL
+    serverid character varying(26) NOT NULL,
+    secretkey uuid NOT NULL
 );
 
 
@@ -122,6 +123,13 @@ ALTER TABLE ONLY servers
 --
 
 CREATE INDEX playerid_fkey ON deaths USING btree (playerid);
+
+
+--
+-- Name: servers_secretkey_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX servers_secretkey_idx ON servers USING btree (secretkey);
 
 
 --
