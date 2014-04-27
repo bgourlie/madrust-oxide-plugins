@@ -19,6 +19,7 @@ end
 
 function PLUGIN:OnKilled(takeDamage, damageEvent)
 	local normalizedEvent = self:NormalizeDamageEvent(damageEvent)
+	if not normalizedEvent then return end
 	print(" *** BEGIN DEATH REPORT *** ")
 	print('attacker: ' .. normalizedEvent.attacker.name)
 	print('victim: ' .. normalizedEvent.victim.name)
@@ -54,8 +55,7 @@ function PLUGIN:NormalizeDamageBeing(damageBeing)
 		name = tostring(damageBeing.character)
 		isNpc = true
 	else
-		name = tostring(damageBeing)
-		isNpc = true
+		return nil
 	end
 
 	return 
