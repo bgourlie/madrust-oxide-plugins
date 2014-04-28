@@ -101,10 +101,10 @@ func (serv InstancesService) PutInstance(instance Instance, serverUrlId string, 
 		return
 	}
 
-	server, errGetServer := GetServer(serverUrlId)
+	server, err := GetServer(serverUrlId)
 
-	if errGetServer != nil {
-		SendInternalServerError(serv.ResponseBuilder(), errGetServer)
+	if err != nil {
+		SendInternalServerError(serv.ResponseBuilder(), err)
 		return
 	}
 
