@@ -66,7 +66,8 @@ CREATE TABLE deaths_pvp (
 CREATE TABLE instances (
     id uuid NOT NULL,
     url_id character varying NOT NULL,
-    server_id uuid NOT NULL
+    server_id uuid NOT NULL,
+    name character varying(26) NOT NULL
 );
 
 
@@ -124,6 +125,14 @@ ALTER TABLE ONLY instances
 
 
 --
+-- Name: instances_server_id_url_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY instances
+    ADD CONSTRAINT instances_server_id_url_id_key UNIQUE (server_id, url_id);
+
+
+--
 -- Name: players_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -137,6 +146,14 @@ ALTER TABLE ONLY players
 
 ALTER TABLE ONLY servers
     ADD CONSTRAINT servers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: servers_url_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY servers
+    ADD CONSTRAINT servers_url_id_key UNIQUE (url_id);
 
 
 --
@@ -158,13 +175,6 @@ CREATE INDEX deaths_players_fkey ON deaths USING btree (player_id);
 --
 
 CREATE INDEX instances_servers_fk ON instances USING btree (server_id);
-
-
---
--- Name: instances_url_id_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX instances_url_id_idx ON instances USING btree (url_id);
 
 
 --
