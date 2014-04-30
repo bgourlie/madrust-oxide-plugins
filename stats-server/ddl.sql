@@ -33,8 +33,6 @@ SET default_with_oids = false;
 
 CREATE TABLE deaths (
     player_id bigint NOT NULL,
-    "time" timestamp with time zone NOT NULL,
-    instance_id uuid NOT NULL,
     id uuid NOT NULL
 );
 
@@ -56,6 +54,17 @@ CREATE TABLE deaths_pve (
 CREATE TABLE deaths_pvp (
     killerid bigint,
     id uuid NOT NULL
+);
+
+
+--
+-- Name: events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE events (
+    id uuid NOT NULL,
+    "time" timestamp with time zone,
+    instance_id uuid NOT NULL
 );
 
 
@@ -117,6 +126,14 @@ ALTER TABLE ONLY deaths_pvp
 
 
 --
+-- Name: events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY events
+    ADD CONSTRAINT events_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: instances_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -157,17 +174,17 @@ ALTER TABLE ONLY servers
 
 
 --
--- Name: deaths_instances_fk; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX deaths_instances_fk ON deaths USING btree (instance_id);
-
-
---
 -- Name: deaths_players_fkey; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX deaths_players_fkey ON deaths USING btree (player_id);
+
+
+--
+-- Name: instances_fkey; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX instances_fkey ON events USING btree (instance_id);
 
 
 --
@@ -185,11 +202,11 @@ CREATE UNIQUE INDEX servers_url_id_idx ON servers USING btree (url_id);
 
 
 --
--- Name: deaths_instance_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: deaths_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY deaths
-    ADD CONSTRAINT deaths_instance_id_fkey FOREIGN KEY (instance_id) REFERENCES instances(id);
+    ADD CONSTRAINT deaths_id_fkey FOREIGN KEY (id) REFERENCES events(id);
 
 
 --
@@ -214,6 +231,14 @@ ALTER TABLE ONLY deaths_pve
 
 ALTER TABLE ONLY deaths_pvp
     ADD CONSTRAINT deaths_pvp_id_fkey FOREIGN KEY (id) REFERENCES deaths(id);
+
+
+--
+-- Name: events_instance_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY events
+    ADD CONSTRAINT events_instance_id_fkey FOREIGN KEY (instance_id) REFERENCES instances(id);
 
 
 --

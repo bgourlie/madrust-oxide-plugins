@@ -34,9 +34,15 @@ func main() {
 	gorest.RegisterService(new(ServersService))
 	gorest.RegisterService(new(InstancesService))
 	gorest.RegisterService(new(PlayersService))
+	gorest.RegisterService(new(EventsService))
 
 	http.Handle("/", gorest.Handle())
 	http.ListenAndServe(fmt.Sprintf(":%v", conf.HttpPort), nil)
+}
+
+type EventsService struct {
+	gorest.RestService `root:"/events/{serverUrlId:string}/{instanceUrlId:string}" consumes:"application/json" produces:"application/json"`
+	postEvents         gorest.EndPoint `method:"POST" path:"/" postdata:"[]Event"`
 }
 
 type ServersService struct {
@@ -51,9 +57,15 @@ type InstancesService struct {
 
 type PlayersService struct {
 	gorest.RestService `root:"/players" consumes:"application/json" produces:"application/json"`
+	getUser            gorest.EndPoint `method:"GET" path:"/{id:int64}" output:"Player"`
+	putUser            gorest.EndPoint `method:"PUT" path:"/{id:int64}" postdata:"Player"`
+}
 
-	getUser gorest.EndPoint `method:"GET" path:"/{id:int64}" output:"Player"`
-	putUser gorest.EndPoint `method:"PUT" path:"/{id:int64}" postdata:"Player"`
+type Event struct {
+	Id       string
+	Time     string
+	Type     string
+	Metadata string
 }
 
 type Instance struct {
@@ -79,6 +91,12 @@ type Config struct {
 	DbUser     string
 	DbPassword string
 	HttpPort   int
+}
+
+func (serv EventsService) PostEvents(events []Event, serverUrlid string, instanceUrlId string) {
+	for _, event := range events {
+		fmt.Print(event.Metadata)
+	}
 }
 
 func (serv InstancesService) PutInstance(instance Instance, serverUrlId string, urlId string) {
@@ -110,11 +128,13 @@ func (serv InstancesService) PutInstance(instance Instance, serverUrlId string, 
 
 	instance.Id = uuid.New()
 	instance.ServerId = server.Id
+	instance.UrlId = urlId
 
 	_, insertErr := g_db.Exec("INSERT INTO instances (id, url_id, server_id, name) VALUES ($1, $2, $3, $4)", instance.Id, instance.UrlId, instance.ServerId, instance.Name)
 
 	if insertErr != nil {
 		SendInternalServerError(serv.ResponseBuilder(), insertErr)
+		return
 	}
 
 	serv.ResponseBuilder().SetResponseCode(201).Overide(true)
@@ -133,6 +153,8 @@ func (serv ServersService) PutServer(server Server, urlId string) {
 	}
 
 	server.Id = uuid.New()
+	server.UrlId = urlId
+
 	_, insertErr := g_db.Exec("INSERT INTO servers (id, url_id, name) VALUES ($1, $2, $3)", server.Id, server.UrlId, server.Name)
 
 	if insertErr != nil {
