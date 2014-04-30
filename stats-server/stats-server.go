@@ -41,7 +41,7 @@ func main() {
 }
 
 type EventsService struct {
-	gorest.RestService `root:"/events/{serverUrlId:string}/{instanceUrlId:string}" consumes:"application/json" produces:"application/json"`
+	gorest.RestService `root:"/events/{serverId:string}/{instanceId:string}" consumes:"application/json" produces:"application/json"`
 	postEvents         gorest.EndPoint `method:"POST" path:"/" postdata:"[]Event"`
 }
 
@@ -93,7 +93,7 @@ type Config struct {
 	HttpPort   int
 }
 
-func (serv EventsService) PostEvents(events []Event, serverUrlid string, instanceUrlId string) {
+func (serv EventsService) PostEvents(events []Event, serverId string, instanceId string) {
 	for _, event := range events {
 		fmt.Print(event.Metadata)
 	}
